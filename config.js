@@ -1,0 +1,3 @@
+const CONFIG = {
+    TMDB_API_KEY: "7c8569a1f7d2b7e55e2c357ed07775f4"
+};

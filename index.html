@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMDB Media Search</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <div class="header-inner">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="10 8 16 12 10 16 10 8"/>
+                    </svg>
+                    <span class="logo-text">MediaSearch</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <section class="search-section">
+                <div class="search-container">
+                    <h1 class="search-title">Find Movies & TV Shows</h1>
+                    <p class="search-subtitle">Search by title or browse with advanced filters</p>
+                    
+                    <div class="search-box-wrapper">
+                        <div class="search-box" id="searchBox">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                            <input 
+                                type="text" 
+                                id="searchInput" 
+                                class="search-input" 
+                                placeholder="Search for a movie or TV show..." 
+                                autocomplete="off"
+                                aria-label="Search for movies and TV shows"
+                                aria-autocomplete="list"
+                                aria-controls="suggestionsList"
+                                aria-expanded="false"
+                            >
+                            <button class="clear-btn" id="clearBtn" aria-label="Clear search" type="button">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                            <div class="loading-spinner" id="searchLoading" aria-hidden="true">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="suggestions-dropdown" id="suggestionsDropdown" role="listbox" aria-label="Search suggestions">
+                            <ul class="suggestions-list" id="suggestionsList"></ul>
+                            <div class="suggestions-empty" id="suggestionsEmpty">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"/>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                </svg>
+                                <p>No results found</p>
+                            </div>
+                            <div class="suggestions-error" id="suggestionsError">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                                <p>Something went wrong. Please try again.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="filter-toggle" id="filterToggle" type="button" aria-expanded="false" aria-controls="filterPanel">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="4" y1="21" x2="4" y2="14"/>
+                            <line x1="4" y1="10" x2="4" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12" y2="3"/>
+                            <line x1="20" y1="21" x2="20" y2="16"/>
+                            <line x1="20" y1="12" x2="20" y2="3"/>
+                            <line x1="1" y1="14" x2="7" y2="14"/>
+                            <line x1="9" y1="8" x2="15" y2="8"/>
+                            <line x1="17" y1="16" x2="23" y2="16"/>
+                        </svg>
+                        <span>Filters</span>
+                        <span class="filter-badge" id="filterBadge">0</span>
+                    </button>
+                </div>
+            </section>
+
+            <section class="filter-panel" id="filterPanel" aria-hidden="true">
+                <div class="filter-panel-inner">
+                    <div class="filter-group">
+                        <label class="filter-label">Type</label>
+                        <div class="type-toggle" id="typeToggle">
+                            <button class="type-btn active" data-type="movie" type="button">Movies</button>
+                            <button class="type-btn" data-type="tv" type="button">TV Shows</button>
+                        </div>
+                    </div>
+
+                    <div class="filter-group filter-group-full">
+                        <label class="filter-label">Genres</label>
+                        <div class="genre-chips" id="genreChips">
+                            <div class="genre-loading" id="genreLoading">
+                                <div class="spinner-small"></div>
+                                <span>Loading genres...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Year</label>
+                        <div class="range-inputs">
+                            <input type="number" class="range-input" id="yearFrom" placeholder="From" min="1900" max="2099" aria-label="Year from">
+                            <span class="range-separator">-</span>
+                            <input type="number" class="range-input" id="yearTo" placeholder="To" min="1900" max="2099" aria-label="Year to">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Rating</label>
+                        <div class="range-inputs">
+                            <input type="number" class="range-input" id="ratingMin" placeholder="Min" min="0" max="10" step="0.1" aria-label="Minimum rating">
+                            <span class="range-separator">-</span>
+                            <input type="number" class="range-input" id="ratingMax" placeholder="Max" min="0" max="10" step="0.1" aria-label="Maximum rating">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label" for="languageSelect">Language</label>
+                        <div class="selector-wrapper">
+                            <select id="languageSelect" class="selector" aria-label="Select language">
+                                <option value="">Any</option>
+                                <option value="en">English</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                                <option value="it">Italian</option>
+                                <option value="ja">Japanese</option>
+                                <option value="ko">Korean</option>
+                                <option value="zh">Chinese</option>
+                                <option value="hi">Hindi</option>
+                                <option value="pt">Portuguese</option>
+                                <option value="ru">Russian</option>
+                                <option value="ar">Arabic</option>
+                                <option value="tr">Turkish</option>
+                                <option value="pl">Polish</option>
+                                <option value="nl">Dutch</option>
+                                <option value="sv">Swedish</option>
+                                <option value="da">Danish</option>
+                                <option value="no">Norwegian</option>
+                                <option value="fi">Finnish</option>
+                                <option value="th">Thai</option>
+                                <option value="id">Indonesian</option>
+                                <option value="vi">Vietnamese</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label" for="sortSelect">Sort By</label>
+                        <div class="selector-wrapper">
+                            <select id="sortSelect" class="selector" aria-label="Sort by">
+                                <option value="popularity.desc">Popularity (High to Low)</option>
+                                <option value="popularity.asc">Popularity (Low to High)</option>
+                                <option value="vote_average.desc">Rating (High to Low)</option>
+                                <option value="vote_average.asc">Rating (Low to High)</option>
+                                <option value="primary_release_date.desc" data-movie>Release Date (Newest)</option>
+                                <option value="primary_release_date.asc" data-movie>Release Date (Oldest)</option>
+                                <option value="first_air_date.desc" data-tv>Air Date (Newest)</option>
+                                <option value="first_air_date.asc" data-tv>Air Date (Oldest)</option>
+                                <option value="revenue.desc" data-movie>Revenue (High to Low)</option>
+                                <option value="title.asc" data-movie>Title (A-Z)</option>
+                                <option value="title.desc" data-movie>Title (Z-A)</option>
+                                <option value="name.asc" data-tv>Title (A-Z)</option>
+                                <option value="name.desc" data-tv>Title (Z-A)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-group filter-group-inline">
+                        <label class="toggle-label" for="adultToggle">
+                            <span class="toggle-switch">
+                                <input type="checkbox" id="adultToggle" aria-label="Include adult content">
+                                <span class="toggle-slider"></span>
+                            </span>
+                            <span class="toggle-text">Include Adult Content</span>
+                        </label>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button class="btn btn-primary" id="applyFilters" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                            Apply Filters
+                        </button>
+                        <button class="btn btn-secondary" id="resetFilters" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="1 4 1 10 7 10"/>
+                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                            </svg>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="results-section" id="resultsSection">
+                <div class="results-header">
+                    <h2 class="results-title" id="resultsTitle">Trending</h2>
+                    <div class="results-loading" id="resultsLoading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+                <div class="results-grid" id="resultsGrid"></div>
+                <div class="results-empty" id="resultsEmpty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <p>No results found</p>
+                    <span class="results-empty-hint">Try adjusting your filters or search query</span>
+                </div>
+                <div class="pagination" id="pagination">
+                    <button class="pagination-btn" id="prevPage" type="button" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                        Previous
+                    </button>
+                    <span class="pagination-info" id="paginationInfo">Page 1</span>
+                    <button class="pagination-btn" id="nextPage" type="button" disabled>
+                        Next
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+            <section class="media-section" id="mediaSection">
+                <div class="media-card" id="mediaCard">
+                    <div class="media-poster-wrapper">
+                        <img class="media-poster" id="mediaPoster" src="" alt="" loading="lazy">
+                        <div class="media-poster-placeholder" id="mediaPosterPlaceholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="media-info">
+                        <div class="media-header">
+                            <span class="media-badge" id="mediaBadge">Movie</span>
+                            <span class="media-rating" id="mediaRating">
+                                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                </svg>
+                                <span id="mediaRatingValue">--</span>
+                            </span>
+                        </div>
+                        <h2 class="media-title" id="mediaTitle"></h2>
+                        <p class="media-year" id="mediaYear"></p>
+                        <p class="media-overview" id="mediaOverview"></p>
+                    </div>
+                </div>
+
+                <div class="tv-controls" id="tvControls">
+                    <div class="selector-group">
+                        <label for="seasonSelect" class="selector-label">Season</label>
+                        <div class="selector-wrapper">
+                            <select id="seasonSelect" class="selector" aria-label="Select season">
+                                <option value="">Select a season</option>
+                            </select>
+                            <div class="selector-loading" id="seasonLoading">
+                                <div class="spinner-small"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="selector-group">
+                        <label for="episodeSelect" class="selector-label">Episode</label>
+                        <div class="selector-wrapper">
+                            <select id="episodeSelect" class="selector" aria-label="Select episode" disabled>
+                                <option value="">Select an episode</option>
+                            </select>
+                            <div class="selector-loading" id="episodeLoading">
+                                <div class="spinner-small"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="servers-section" id="serversSection">
+                    <h3 class="servers-title">Available Servers</h3>
+                    <div class="servers-grid" id="serversGrid"></div>
+                </div>
+            </section>
+
+            <section class="recent-section" id="recentSection">
+                <h2 class="section-title">Recently Viewed</h2>
+                <div class="recent-grid" id="recentGrid"></div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>Powered by <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">TMDB</a></p>
+        </footer>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="config.js"></script>
+    <script src="servers.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
